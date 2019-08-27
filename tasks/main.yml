@@ -1,0 +1,59 @@
+---
+# TODO:
+#  - Make sure this file can use variables properly.
+#  - Consider using hosts:localhost, connection: local in parent playbook
+#  - Create keypair
+#
+
+- name: Check for any missing arguments
+  assert:
+    that:
+      - openstack_security_group_name is defined
+      - openstack_security_group_name is string
+      - openstack_security_group_desc is defined
+      - openstack_security_group_desc is string
+      - openstack_security_group_rules is defined
+      - openstack_security_group_rules is sequence
+
+- name: Create openstack security groups
+  os_security_group:
+    cloud: "{{ openstack_cloud | default(omit) }}"
+    auth: "{{ openstack_auth | default(omit) }}"
+    verify: "{{ openstack_ssl_verify | default(true) }}"
+    name: "{{ openstack_security_group_name }}"
+    description: "{{ openstack_security_group_desc }}"
+    state: present
+
+- name: Delete default openstack security group rules
+  os_security_group_rule:
+    cloud: "{{ openstack_cloud | default(omit) }}"
+    auth: "{{ openstack_auth | default(omit) }}"
+    verify: "{{ openstack_ssl_verify | default(true) }}"
+    security_group: '{{ item.group_name }}'
+    direction: '{{ item.direction }}'
+    ethertype: '{{ item.ethertype }}'
+    state: absent
+  with_items:
+    - group_name: "{{ openstack_security_group_name }}"
+      direction: egress
+      ethertype: IPv6
+    - group_name: "{{ openstack_security_group_name }}"
+      direction: egress
+      ethertype: IPv4
+
+- name: Create openstack security group rules
+  os_security_group_rule:
+    cloud: "{{ openstack_cloud | default(omit) }}"
+    auth: "{{ openstack_auth | default(omit) }}"
+    verify: "{{ openstack_ssl_verify | default(true) }}"
+    security_group: '{{ item.group_name }}'
+    direction: '{{ item.direction }}'
+    ethertype: '{{ item.ethertype }}'
+    protocol: '{{ item.protocol | default(omit) }}'
+    port_range_min: '{{ item.port_range_min | default(omit) }}'
+    port_range_max: '{{ item.port_range_max | default(omit) }}'
+    remote_group: '{{ item.remote_group | default(omit) }}'
+    remote_ip_prefix: '{{ item.remote_ip_prefix | default(omit) }}'
+    state: present
+  with_items:
+    - "{{ openstack_security_group_rules }}"

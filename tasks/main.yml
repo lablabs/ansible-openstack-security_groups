@@ -27,13 +27,7 @@
     direction: '{{ item.direction }}'
     ethertype: '{{ item.ethertype }}'
     state: absent
-  loop:
-    - group_name: "{{ openstack_security_group_name }}"
-      direction: egress
-      ethertype: IPv6
-    - group_name: "{{ openstack_security_group_name }}"
-      direction: egress
-      ethertype: IPv4
+  loop: "{{ os_security_group_rule_defaults }}" 
 
 - name: Create openstack security group rules
   os_security_group_rule:
@@ -49,5 +43,4 @@
     remote_group: '{{ item.remote_group | default(omit) }}'
     remote_ip_prefix: '{{ item.remote_ip_prefix | default(omit) }}'
     state: present
-  loop:
-    - "{{ openstack_security_group_rules }}"
+  loop: "{{ openstack_security_group_rules }}"

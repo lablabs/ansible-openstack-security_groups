@@ -1,10 +1,4 @@
 ---
-# TODO:
-#  - Make sure this file can use variables properly.
-#  - Consider using hosts:localhost, connection: local in parent playbook
-#  - Create keypair
-#
-
 - name: Check for any missing arguments
   assert:
     that:
@@ -33,7 +27,7 @@
     direction: '{{ item.direction }}'
     ethertype: '{{ item.ethertype }}'
     state: absent
-  with_items:
+  loop:
     - group_name: "{{ openstack_security_group_name }}"
       direction: egress
       ethertype: IPv6
@@ -55,5 +49,5 @@
     remote_group: '{{ item.remote_group | default(omit) }}'
     remote_ip_prefix: '{{ item.remote_ip_prefix | default(omit) }}'
     state: present
-  with_items:
+  loop:
     - "{{ openstack_security_group_rules }}"
